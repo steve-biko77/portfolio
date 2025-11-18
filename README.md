@@ -1,6 +1,6 @@
-# [Ton Prénom] – Développeur Fullstack
+# Steve Biko – Développeur Fullstack
 
-![Portfolio Preview](https://raw.githubusercontent.com/TON_PSEUDO/portfolio/main/public/preview.jpg)
+![Portfolio Preview](https://raw.githubusercontent.com/steve-biko77/portfolio/main/public/preview.jpg)
 
 Portfolio moderne réalisé avec **Next.js 16**, **Tailwind CSS v4**, **shadcn/ui**, **Aceternity UI**, **Three.js**, Framer Motion.
 
@@ -20,6 +20,7 @@ Cette section sera mise à jour très bientôt avec :
 - shadcn/ui + Aceternity components
 - Three.js + React Three Fiber
 - Framer Motion + GSAP
+- sentry
 
 ## Lancer localement
 ```bash
