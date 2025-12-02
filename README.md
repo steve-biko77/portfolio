@@ -1,6 +1,6 @@
 # Steve Biko – Développeur Fullstack
 
-![Portfolio Preview](https://raw.githubusercontent.com/steve-biko77/portfolio/main/public/preview.jpg)
+![Portfolio Preview](https://raw.githubusercontent.com/steve-biko77/portfolio/main/public/preview.png)
 
 Portfolio moderne réalisé avec **Next.js 16**, **Tailwind CSS v4**, **shadcn/ui**, **Aceternity UI**, **Three.js**, Framer Motion.
 
