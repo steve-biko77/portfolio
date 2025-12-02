@@ -73,18 +73,18 @@ export const projects = [
     {
         id: 1,
         title: "3D Solar System Planets to Explore",
-        des: "Explore the wonders of our solar system with this captivating 3D simulation of the planets using Three.js.",
+        des: "Explore the wonders of our solar system with this captivating perspective simulation of the planets using kivy",
         img: "/p1.svg",
-        iconLists: ["/re.svg", "/tail.svg", "/ts.svg", "/three.svg", "/fm.svg"],
-        link: "/ui.earth.com",
+        iconLists: ["/kivy.svg", "/python.svg", "/git.svg", "/sql.svg", "/fm.svg"],
+        link: "https://github.com/steve-biko77/galaxy-game",
     },
     {
         id: 2,
-        title: "Yoom - Video Conferencing App",
-        des: "Simplify your video conferencing experience with Yoom. Seamlessly connect with colleagues and friends.",
+        title: "Krypt - Crypto Banking App",
+        des: "Send real ETH with message + GIFs on Sepolia blockchain instantly.",
         img: "/p2.svg",
-        iconLists: ["/next.svg", "/tail.svg", "/ts.svg", "/stream.svg", "/c.svg"],
-        link: "/ui.yoom.com",
+        iconLists: ["/next.svg", "/solidity.svg", "/ts.svg", "/tail.svg", "/re.svg"],
+        link: "https://timely-lolly-203ec0.netlify.app/",
     },
     {
         id: 3,
@@ -96,11 +96,11 @@ export const projects = [
     },
     {
         id: 4,
-        title: "Animated Apple Iphone 3D Website",
-        des: "Recreated the Apple iPhone 15 Pro website, combining GSAP animations and Three.js 3D effects..",
+        title: "COVID-19 Detection from Blood Tests",
+        des: "Built a machine learning model to predict SARS-CoV-2 from routine blood tests using SVM, feature engineering, and CI/CD.",
         img: "/p4.svg",
-        iconLists: ["/next.svg", "/tail.svg", "/ts.svg", "/three.svg", "/gsap.svg"],
-        link: "/ui.apple.com",
+        iconLists: ["/python.svg", "/panda.svg", "/scikit.svg", "/git.svg", "/github.svg"],
+        link: "https://github.com/steve-biko77/covid19-analysis",
     },
 ];
 
@@ -180,7 +180,7 @@ export const workExperience = [
     },
     {
         id: 2,
-        title: "Mobile App Dev - Galaxy",
+        title: "Mobile App Dev - Galaxy-MrBeat",
         desc: "Designed and developed mobile app for both iOS & Android platforms using Kivy.",
         className: "md:col-span-2", // change to md:col-span-2
         thumbnail: "/exp2.svg",
