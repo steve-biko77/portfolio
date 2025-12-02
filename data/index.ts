@@ -108,31 +108,31 @@ export const testimonials = [
     {
         quote:
             "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "Michael Johnson",
+        name: "DR Hilaire k.",
         title: "Director of Cefodep Center",
     },
     {
         quote:
             "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "Michael Johnson",
+        name: "DR Hilaire k.",
         title: "Director of Cefodep Center",
     },
     {
         quote:
             "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "Michael Johnson",
+        name: "DR Hilaire k.",
         title: "Director of Cefodep Center",
     },
     {
         quote:
             "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "Michael Johnson",
+        name: "DR Hilaire k.",
         title: "Director of Cefodep Center",
     },
     {
         quote:
             "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "Michael Johnson",
+        name: "DR Hilaire K.",
         title: "Director of Cefodep Center",
     },
 ];
