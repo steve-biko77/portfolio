@@ -182,7 +182,7 @@ export const TestimonialWall = ({ items }: { items: Testimonial[] }) => {
                                             background: `radial-gradient(120% 90% at ${20 + seed * 60}% ${15 + seed * 30}%, rgba(203,172,249,.26), transparent 62%), linear-gradient(${150 + seed * 90}deg, #161a2e 0%, #0b0e1c 58%, #05070f 100%)`,
                                         }}
                                     >
-                                        <span className="absolute inset-0 grid place-items-center text-[clamp(72px,9vw,128px)] font-bold leading-none text-white/[.07]">
+                                        <span className="absolute inset-0 grid place-items-center text-[clamp(56px,6vw,92px)] font-bold leading-none text-white/[.07]">
                                             {t.name.replace(/^(DR|Dr)\.?\s*/, "").slice(0, 1).toUpperCase()}
                                         </span>
                                     </div>
@@ -197,17 +197,17 @@ export const TestimonialWall = ({ items }: { items: Testimonial[] }) => {
                                     </span>
                                 )}
 
-                                <div className="absolute inset-x-0 bottom-0 flex flex-col gap-4 p-6">
+                                <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5">
                                     <p
-                                        className={`text-[clamp(13px,1.05vw,15px)] leading-relaxed ${
+                                        className={`text-[clamp(11px,.82vw,12.5px)] leading-[1.55] ${
                                             t.pending ? "italic text-white-200/55" : "text-white-100"
                                         }`}
                                     >
                                         {t.pending ? t.quote : `“${t.quote}”`}
                                     </p>
-                                    <div className="border-t border-white/10 pt-4">
-                                        <p className="text-[clamp(14px,1.1vw,17px)] font-semibold text-white">{t.name}</p>
-                                        <p className="mt-1 text-[11px] uppercase tracking-[.1em] text-white-200/70">{t.title}</p>
+                                    <div className="border-t border-white/10 pt-3">
+                                        <p className="text-[clamp(12.5px,.9vw,14px)] font-semibold text-white">{t.name}</p>
+                                        <p className="mt-0.5 text-[9.5px] uppercase tracking-[.1em] text-white-200/70">{t.title}</p>
                                     </div>
                                 </div>
 

@@ -7,7 +7,13 @@
 /* ===================================================================
    1. TES COULEURS + VARIABLES SHADCN/UI (tu les gardes toutes)
    =================================================================== */
+/* layout.tsx declare --font-geist-sans / --font-geist-mono sur <body>,
+   mais rien ne les appliquait : la page tombait sur la police par defaut
+   du navigateur. On les branche sur la pile Tailwind. */
 @theme {
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
     --color-black: #000000;
     --color-black-100: #000319;
     --color-black-200: rgba(17, 25, 40, 0.75);
