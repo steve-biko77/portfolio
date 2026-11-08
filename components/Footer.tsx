@@ -32,20 +32,77 @@ const Footer = () => {
                     />
                 </a>
             </div>
-            <div className="flex mt-16 md:flex-row flex-col justify-between items-center">
-                <p className="md:text-base text-sm md:font-normal font-light">
-                    Copyright © 2025 Wafo Steve Biko
-                </p>
+            {/* the closing statement */}
+            <div className="relative z-10 mt-28">
+                <h2 className="text-[clamp(32px,6.4vw,84px)] font-bold uppercase leading-[.94] tracking-tight text-white">
+                    Un jeu de données<br />qui dort quelque part&nbsp;?
+                </h2>
 
-                <div className="flex items-center md:gap-3 gap-6">
-                    {socialMedia.map((info) => (
-                        <div
-                            key={info.id}
-                            className="w-10 h-10 cursor-pointer flex justify-center items-center backdrop-filter backdrop-blur-lg saturate-180 bg-opacity-75 bg-black-200 rounded-lg border border-black-300"
-                        >
-                            <img src={info.img} alt="icons" width={20} height={20} />
+                <div className="mt-9 flex flex-wrap gap-2.5">
+                    <a
+                        href="mailto:wkstevebiko1@gmail.com"
+                        className="inline-flex h-11 items-center rounded border border-purple px-5 font-mono text-[11px] uppercase tracking-[.1em] text-purple transition-colors hover:bg-purple hover:text-black-100"
+                    >
+                        wkstevebiko1@gmail.com
+                    </a>
+                    <a
+                        href="https://www.malt.fr/profile/stevebikowafokamga"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 items-center rounded border border-white/15 px-5 font-mono text-[11px] uppercase tracking-[.1em] text-white transition-colors hover:border-purple hover:text-purple"
+                    >
+                        Malt
+                    </a>
+                    <a
+                        href="https://github.com/steve-biko77"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 items-center rounded border border-white/15 px-5 font-mono text-[11px] uppercase tracking-[.1em] text-white transition-colors hover:border-purple hover:text-purple"
+                    >
+                        GitHub
+                    </a>
+                    <a
+                        href="https://www.credly.com/earner/earned/badge/f9b8504d-47ea-49aa-8141-d63dc10bdf43"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 items-center rounded border border-white/15 px-5 font-mono text-[11px] uppercase tracking-[.1em] text-white transition-colors hover:border-purple hover:text-purple"
+                    >
+                        Certification IBM
+                    </a>
+                </div>
+
+                <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6">
+                    <p className="font-mono text-[11px] uppercase tracking-[.1em] text-white-200/60">
+                        © 2026 Steve Biko Wafo Kamga
+                    </p>
+
+                    <div className="flex items-center gap-5">
+                        <p className="font-mono text-[11px] uppercase tracking-[.1em] text-white-200/60">
+                            Champigny-sur-Marne
+                        </p>
+                        <div className="flex items-center gap-3">
+                            {socialMedia.map((info) => {
+                                const face = <img src={info.img} alt="" width={20} height={20} />;
+                                const box =
+                                    "flex h-10 w-10 items-center justify-center rounded-lg border border-black-300 bg-black-200 bg-opacity-75 backdrop-blur-lg backdrop-filter transition-colors";
+                                return info.link ? (
+                                    <a
+                                        key={info.id}
+                                        href={info.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`${box} cursor-pointer hover:border-purple`}
+                                    >
+                                        {face}
+                                    </a>
+                                ) : (
+                                    <div key={info.id} className={box}>
+                                        {face}
+                                    </div>
+                                );
+                            })}
                         </div>
-                    ))}
+                    </div>
                 </div>
             </div>
         </footer>

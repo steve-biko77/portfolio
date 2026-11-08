@@ -290,10 +290,11 @@ export const workExperience = [
     },
 ];
 
-export const socialMedia = [
+export const socialMedia: { id: number; img: string; link?: string }[] = [
     {
         id: 1,
         img: "/git.svg",
+        link: "https://github.com/steve-biko77",
     },
     {
         id: 2,

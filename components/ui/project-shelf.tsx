@@ -117,6 +117,10 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
     const drag = useRef({ on: false, moved: false, x0: 0, t0: 0 });
     const painted = useRef<Set<number>>(new Set());
     const openRef = useRef(false);
+    /** Auto-advance so the shelf keeps turning for a visitor who is only scrolling past. */
+    const inside = useRef(false);
+    const autoClock = useRef(0);
+    const AUTO_EVERY = 1.5;
 
     const [dims, setDims] = useState({ H: 340, ws: 57, d: 179, gap: 10 });
     const [active, setActive] = useState(pos.current % n);
@@ -163,6 +167,16 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
         const tick = (now: number) => {
             const dt = Math.min(0.05, (now - last) / 1000);
             last = now;
+
+            if (!reduce && !inside.current && !drag.current.on && !openRef.current) {
+                autoClock.current += dt;
+                if (autoClock.current >= AUTO_EVERY) {
+                    autoClock.current = 0;
+                    target.current = Math.round(target.current) + 1;
+                }
+            } else {
+                autoClock.current = 0;
+            }
 
             const k = reduce ? 1 : drag.current.on ? 18 : 5.2;
             pos.current += (target.current - pos.current) * (1 - Math.exp(-k * dt));
@@ -298,6 +312,7 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
 
     const years = Array.from(new Set(items.map((p) => p.year))).sort();
     const current = items[active];
+    const allTools = Array.from(new Set(items.flatMap((p) => p.stack)));
 
     return (
         <div className="w-full">
@@ -342,6 +357,7 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                         if (drag.current.moved) target.current = drag.current.t0 - dx / (dims.ws + dims.gap);
                     }
                 }}
+                onPointerEnter={() => (inside.current = true)}
                 onPointerDown={(e) => {
                     if (openRef.current) return;
                     drag.current = { on: true, moved: false, x0: e.clientX, t0: target.current };
@@ -355,6 +371,7 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                 }}
                 onPointerLeave={() => {
                     hovered.current = -1;
+                    inside.current = false;
                     point.current = { x: 0, y: 0 };
                 }}
                 onWheel={(e) => {
@@ -377,8 +394,15 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                                 onClick={() => {
                                     if (drag.current.moved || openRef.current) return;
                                     const r = relative(v);
-                                    if (Math.abs(r) < 0.5) openBook();
-                                    else target.current = Math.round(target.current + r);
+                                    if (Math.abs(r) >= 0.5) target.current = Math.round(target.current + r);
+                                }}
+                                onDoubleClick={() => {
+                                    if (openRef.current) return;
+                                    const r = relative(v);
+                                    if (Math.abs(r) >= 0.5) {
+                                        target.current = Math.round(target.current + r);
+                                        setTimeout(openBook, 420);
+                                    } else openBook();
                                 }}
                                 className="absolute h-0 w-0 cursor-pointer"
                                 style={{ transformStyle: "preserve-3d", willChange: "transform" }}
@@ -491,27 +515,18 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                                         {p.kind}
                                     </p>
 
-                                    <div className="mt-[4%] flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            {p.iconLists.slice(0, 5).map((icon, i) => (
-                                                <span
-                                                    key={icon}
-                                                    className="flex items-center justify-center rounded-full border border-white/20 bg-black"
-                                                    style={{
-                                                        width: dims.d * 0.1,
-                                                        height: dims.d * 0.1,
-                                                        transform: `translateX(-${4 * i}px)`,
-                                                    }}
-                                                >
-                                                    <img src={icon} alt="" className="h-1/2 w-1/2 object-contain" />
-                                                </span>
-                                            ))}
-                                        </div>
+                                    <div className="mt-[4%] flex items-center justify-between border-t border-white/10 pt-[4%]">
+                                        <span
+                                            className="font-mono uppercase tracking-[.1em] text-white-200/45"
+                                            style={{ fontSize: dims.d * 0.028 }}
+                                        >
+                                            {p.stack.length} technos
+                                        </span>
                                         <span
                                             className="font-mono uppercase tracking-[.1em] text-purple"
                                             style={{ fontSize: dims.d * 0.03 }}
                                         >
-                                            Ouvrir
+                                            Double-clic
                                         </span>
                                     </div>
                                     <span
@@ -549,12 +564,65 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                 <h3 className="text-2xl font-bold uppercase tracking-wide text-white md:text-3xl">{current.title}</h3>
                 <p className="mt-2 font-mono text-[11px] uppercase tracking-[.14em] text-purple">{current.kind}</p>
                 <p className="mt-1 font-mono text-[11px] tracking-[.1em] text-white-200/55">{current.year}</p>
+
+                <div className="mt-4 flex items-center justify-center">
+                    {current.iconLists.map((icon, i) => (
+                        <span
+                            key={icon}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border bg-black transition-colors duration-500"
+                            style={{
+                                transform: `translateX(-${5 * i}px)`,
+                                borderColor: `hsl(${current.hue} 60% 62% / .45)`,
+                                boxShadow: `0 0 14px -4px hsl(${current.hue} 70% 55% / .6)`,
+                            }}
+                        >
+                            <img src={icon} alt="" className="h-1/2 w-1/2 object-contain" />
+                        </span>
+                    ))}
+                </div>
+
                 <button
                     onClick={openBook}
                     className="mt-5 inline-flex items-center gap-2 rounded border border-purple/60 px-5 py-2 text-sm text-purple transition-colors hover:bg-purple hover:text-black-100"
                 >
                     Ouvrir le livre <FaLocationArrow size={11} />
                 </button>
+            </div>
+
+            {/* the toolbox: every technology used across the shelf, lit for the open book */}
+            <div className="mx-auto mt-14 max-w-5xl px-4">
+                <div className="flex items-baseline justify-between gap-6 border-b border-white/10 pb-3">
+                    <h4 className="text-lg font-bold uppercase tracking-wide text-white">L&apos;outillage</h4>
+                    <p className="text-right text-xs text-white-200/55">
+                        Ce que j&apos;utilise réellement en mission. Les outils du livre ouvert s&apos;allument.
+                    </p>
+                </div>
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {allTools.map((tool) => {
+                        const on = current.stack.includes(tool);
+                        return (
+                            <span
+                                key={tool}
+                                className="rounded border px-3 py-1.5 font-mono text-[11px] tracking-[.04em] transition-all duration-500"
+                                style={
+                                    on
+                                        ? {
+                                              borderColor: `hsl(${current.hue} 70% 62%)`,
+                                              color: `hsl(${current.hue} 80% 76%)`,
+                                              background: `hsl(${current.hue} 70% 50% / .12)`,
+                                              boxShadow: `0 0 18px -6px hsl(${current.hue} 80% 58% / .8)`,
+                                          }
+                                        : {
+                                              borderColor: "rgba(255,255,255,.12)",
+                                              color: "rgba(190,193,221,.45)",
+                                          }
+                                }
+                            >
+                                {tool}
+                            </span>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* the opened book */}

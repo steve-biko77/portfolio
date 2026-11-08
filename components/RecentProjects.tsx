@@ -11,8 +11,8 @@ const RecentProjects = () => {
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-center text-sm text-white-200/70">
-                Chaque projet est rangé comme un livre. Cliquez une tranche pour la faire pivoter,
-                la couverture pour ouvrir le projet.
+                Chaque projet est rangé comme un livre. L&apos;étagère tourne toute seule.
+                Cliquez une tranche pour l&apos;amener au centre, double-cliquez pour ouvrir le livre.
             </p>
 
             <div className="mt-10">
