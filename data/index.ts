@@ -107,33 +107,37 @@ export const projects = [
 export const testimonials = [
     {
         quote:
-            "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "DR Hilaire k.",
-        title: "Director of Cefodep Center",
+            "Working with Steve has been consistently solid. Despite his young age, he shows a level of discipline, clarity and technical understanding that is rare for a junior. He approaches each task with focus, asks the right questions, and delivers clean, reliable work in both development and data science. For any team looking for a motivated young professional with strong potential, Steve is a valuable addition.",
+        name: "Dr Hilaire K.",
+        title: "Directeur du centre CEFODEP",
     },
     {
         quote:
-            "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "DR Hilaire k.",
-        title: "Director of Cefodep Center",
+            "Emplacement réservé au retour des doctorants accompagnés sur l'analyse statistique de leurs thèses.",
+        name: "Facultés de médecine de Yaoundé",
+        title: "Analyse statistique de thèses — 2026",
+        pending: true,
     },
     {
         quote:
-            "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "DR Hilaire k.",
-        title: "Director of Cefodep Center",
+            "Emplacement réservé au retour du client sur le cahier des charges et la première version livrée.",
+        name: "Client Surcharge",
+        title: "Application de suivi d'entraînement — 2026",
+        pending: true,
     },
     {
         quote:
-            "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "DR Hilaire k.",
-        title: "Director of Cefodep Center",
+            "Emplacement réservé au retour sur la mission data et la formation des équipes à l'IA.",
+        name: "NDH",
+        title: "KPI et prompt engineering — 2026",
+        pending: true,
     },
     {
         quote:
-            "Working with Steve  has been consistently solid. despite His young age, he shows a level of discipline, clarity, and technical understanding that Is rare for a junior. he approaches each task with focus, asks The right questions, and delivers clean, reliable work in both development and Data science. for any team looking for a motivated young professional with strong potential, steve  is a valuable addition",
-        name: "DR Hilaire K.",
-        title: "Director of Cefodep Center",
+            "Emplacement réservé au retour du service financier sur les tableaux de bord livrés.",
+        name: "Hôpital Marie-Lannelongue",
+        title: "Tableaux de bord budgétaires — 2026",
+        pending: true,
     },
 ];
 
