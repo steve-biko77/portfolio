@@ -590,14 +590,8 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
             </div>
 
             {/* the toolbox: every technology used across the shelf, lit for the open book */}
-            <div className="mx-auto mt-14 max-w-5xl px-4">
-                <div className="flex items-baseline justify-between gap-6 border-b border-white/10 pb-3">
-                    <h4 className="text-lg font-bold uppercase tracking-wide text-white">L&apos;outillage</h4>
-                    <p className="text-right text-xs text-white-200/55">
-                        Ce que j&apos;utilise réellement en mission. Les outils du livre ouvert s&apos;allument.
-                    </p>
-                </div>
-                <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <div className="mx-auto mt-12 max-w-5xl px-4">
+                <div className="flex flex-wrap justify-center gap-2">
                     {allTools.map((tool) => {
                         const on = current.stack.includes(tool);
                         return (
