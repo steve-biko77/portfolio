@@ -2,6 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { Lensflare, LensflareElement } from "three/examples/jsm/objects/Lensflare.js";
 
 /**
  * Fixed full-screen 3D backdrop. One camera flies through a spiral galaxy, stopping
@@ -21,89 +25,145 @@ float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*noise(p);p*=2.03;a*=
 `;
 
 type PlanetSpec = {
-    kind: 0 | 1 | 2; // 0 rocky, 1 gas bands, 2 star
-    a: string; b: string; c: string; atmo: string;
-    ring?: boolean; seed: number;
+    name: string;
+    kind: "earth" | "tex" | "sun";
+    tex?: string;
+    fallback: string;
+    atmo: string;
+    atmoPow: number;
+    atmoScale: number;
+    size: number;
+    sun?: [number, number, number];
+    ring?: boolean;
+    moon?: boolean;
+    tilt?: number;
+    spin: number;
 };
 
 const PLANETS: PlanetSpec[] = [
-    { kind: 1, a: "#241556", b: "#7b4fd6", c: "#f0d4ff", atmo: "#a77bff", ring: true, seed: 1.3 },
-    { kind: 0, a: "#052b43", b: "#1f8fb8", c: "#e2f8ff", atmo: "#5cc8ff", seed: 4.1 },
-    { kind: 0, a: "#431808", b: "#c2622b", c: "#ffe0b0", atmo: "#ff9a55", seed: 7.7 },
-    { kind: 1, a: "#430d38", b: "#c13a8f", c: "#ffd0ec", atmo: "#ff6cc4", seed: 2.2 },
-    { kind: 0, a: "#082a1f", b: "#2f8f5b", c: "#e2ffee", atmo: "#5dffa6", seed: 9.4 },
-    { kind: 1, a: "#0c1b55", b: "#3a62e0", c: "#d6e6ff", atmo: "#6f95ff", ring: true, seed: 5.6 },
-    { kind: 2, a: "#ff5a10", b: "#ffb347", c: "#fff2c0", atmo: "#ff9340", seed: 3.3 },
+    { name: "Terre", kind: "earth", fallback: "#1f4f8f", atmo: "#5aa8ff", atmoPow: 2.2, atmoScale: 1.13, size: 1, sun: [-0.9, 0.22, 0.28], moon: true, spin: 0.012 },
+    { name: "Mars", kind: "tex", tex: "mars", fallback: "#b0522b", atmo: "#ff9a66", atmoPow: 3, atmoScale: 1.07, size: 0.62, spin: 0.02 },
+    { name: "Jupiter", kind: "tex", tex: "jupiter", fallback: "#c9a27a", atmo: "#e8cfa8", atmoPow: 3, atmoScale: 1.05, size: 1.35, spin: 0.03 },
+    { name: "Saturne", kind: "tex", tex: "saturn", fallback: "#d8c28a", atmo: "#f0dca8", atmoPow: 3, atmoScale: 1.05, size: 1.0, ring: true, tilt: 0.42, spin: 0.028 },
+    { name: "Uranus", kind: "tex", tex: "uranus", fallback: "#8fd6e0", atmo: "#9fe8f0", atmoPow: 2.4, atmoScale: 1.1, size: 0.9, spin: 0.02 },
+    { name: "Neptune", kind: "tex", tex: "neptune", fallback: "#2f56d6", atmo: "#5f86ff", atmoPow: 2.4, atmoScale: 1.1, size: 0.9, spin: 0.02 },
+    { name: "Soleil", kind: "sun", tex: "sun", fallback: "#ff8a20", atmo: "#ff9340", atmoPow: 2, atmoScale: 1.5, size: 1.3, spin: 0.01 },
 ];
 
 const PLANET_VERT = /* glsl */ `
-varying vec3 vObj; varying vec3 vWN; varying vec3 vWP;
+varying vec2 vUv; varying vec3 vWN; varying vec3 vWP;
 void main(){
-  vObj = normalize(position);
+  vUv = uv;
   vWN = normalize(mat3(modelMatrix) * normal);
-  vec4 wp = modelMatrix * vec4(position,1.);
+  vec4 wp = modelMatrix * vec4(position, 1.);
   vWP = wp.xyz;
   gl_Position = projectionMatrix * viewMatrix * wp;
 }`;
 
-const PLANET_FRAG = /* glsl */ `
+const TEX_FRAG = /* glsl */ `
 precision highp float;
-varying vec3 vObj; varying vec3 vWN; varying vec3 vWP;
-uniform vec3 uA, uB, uC, uAtmo, uSun; uniform float uKind, uSeed, uTime;
-${NOISE}
+varying vec2 vUv; varying vec3 vWN; varying vec3 vWP;
+uniform sampler2D uMap; uniform float uHas, uRot; uniform vec3 uFallback, uAtmo, uSun;
 void main(){
-  vec3 p = vObj * 2.4 + uSeed;
-  vec3 col;
-  float emis = 0.;
-  if(uKind < .5){
-    float h = fbm(p * 1.6);
-    float cont = smoothstep(.46,.56,h);
-    col = mix(uA, uB, cont);
-    col = mix(col, uC, smoothstep(.62,.8,h) + smoothstep(.82,.98,abs(vObj.y)) * .9);
-    col *= .85 + .3 * fbm(p * 7.);
-  } else if(uKind < 1.5){
-    float t = vObj.y * 9. + fbm(vec3(vObj.x * 2., vObj.y * 11., vObj.z * 2.) + uSeed + uTime * .03) * 2.4;
-    float b = .5 + .5 * sin(t);
-    col = mix(uA, uB, b);
-    col = mix(col, uC, smoothstep(.65,1., .5 + .5 * sin(t * 1.9 + 1.7)) * .55);
-    col *= .9 + .2 * fbm(p * 5.);
-  } else {
-    float f = fbm(p * 2. + vec3(0., uTime * .08, 0.));
-    float g = fbm(p * 6. - uTime * .05);
-    col = mix(uA, uB, f);
-    col = mix(col, uC, smoothstep(.5,.9, g * f * 2.));
-    emis = 1.;
-  }
-  vec3 n = normalize(vWN);
-  vec3 v = normalize(cameraPosition - vWP);
+  vec2 uv = vec2(vUv.x + uRot, vUv.y);
+  vec3 col = uHas > .5 ? texture2D(uMap, uv).rgb : uFallback;
+  vec3 n = normalize(vWN); vec3 v = normalize(cameraPosition - vWP);
   float d = dot(n, normalize(uSun));
-  float lit = smoothstep(-.08, .75, d);
-  float rim = pow(1. - max(dot(n, v), 0.), 3.);
-  vec3 outc = col * (.05 + lit * 1.15);
-  outc += uAtmo * rim * (.15 + lit * .9) * (1. - emis * .5);
-  outc = mix(outc, col * 1.5 + uC * rim * .6, emis);
+  float lit = smoothstep(-.1, .6, d);
+  float ndv = max(dot(n, v), 0.);
+  float limb = .55 + .45 * pow(ndv, .5);
+  vec3 outc = col * (.03 + lit * 1.2) * limb;
+  float rim = pow(1. - ndv, 3.);
+  outc += uAtmo * rim * lit * .5;
+  float tw = exp(-pow(d * 4.5, 2.));
+  outc += vec3(1., .45, .15) * tw * rim * .3;
   gl_FragColor = vec4(outc, 1.);
 }`;
 
+const EARTH_FRAG = /* glsl */ `
+precision highp float;
+varying vec2 vUv; varying vec3 vWN; varying vec3 vWP;
+uniform sampler2D uDay, uNight, uSpec, uClouds;
+uniform float uHas, uRot, uTime; uniform vec3 uSun, uFallback;
+void main(){
+  vec2 uv = vec2(vUv.x + uRot, vUv.y);
+  vec3 day = uHas > .5 ? texture2D(uDay, uv).rgb : uFallback;
+  vec3 night = uHas > .5 ? texture2D(uNight, uv).rgb : vec3(0.);
+  float spec = uHas > .5 ? texture2D(uSpec, uv).r : 0.;
+  float cl = uHas > .5 ? texture2D(uClouds, vec2(uv.x + uTime * .0025, uv.y)).r : 0.;
+  vec3 n = normalize(vWN), v = normalize(cameraPosition - vWP), s = normalize(uSun);
+  float d = dot(n, s);
+  float lit = smoothstep(-.08, .55, d);
+  float ndv = max(dot(n, v), 0.);
+  cl = smoothstep(.32, 1., cl) * .75;
+  vec3 surf = mix(day, vec3(.95, .97, 1.), cl);
+  vec3 dayc = surf * (.02 + lit * 1.25);
+  vec3 r = reflect(-s, n);
+  dayc += vec3(1., .95, .85) * pow(max(dot(r, v), 0.), 55.) * spec * (1. - cl) * 1.5 * lit;
+  float nightMask = pow(1. - smoothstep(-.18, .12, d), 1.5);
+  vec3 lights = night * vec3(1., .78, .5) * 1.9 * nightMask * (1. - cl * .7);
+  float rim = pow(1. - ndv, 3.);
+  vec3 atm = vec3(.35, .62, 1.) * rim * (.12 + lit * 1.1);
+  float tw = exp(-pow(d * 4., 2.));
+  vec3 twc = vec3(1., .5, .2) * tw * (.2 + rim * .9);
+  gl_FragColor = vec4(dayc + lights + atm + twc * .55, 1.);
+}`;
+
+const SUN_FRAG = /* glsl */ `
+precision highp float;
+varying vec2 vUv; varying vec3 vWN; varying vec3 vWP;
+uniform sampler2D uMap; uniform float uHas, uTime; uniform vec3 uFallback;
+void main(){
+  vec3 n = normalize(vWN); vec3 v = normalize(cameraPosition - vWP);
+  float ndv = max(dot(n, v), 0.);
+  vec2 a = vec2(vUv.x + uTime * .004, vUv.y);
+  vec2 b = vec2(vUv.x * 1.3 - uTime * .006, vUv.y * 1.1 + .03);
+  vec3 c1 = uHas > .5 ? texture2D(uMap, a).rgb : uFallback;
+  vec3 c2 = uHas > .5 ? texture2D(uMap, b).rgb : uFallback;
+  vec3 col = mix(c1, c2, .45) * vec3(1.25, .82, .42) + vec3(.22, .05, 0.);
+  col *= .55 + .45 * pow(ndv, .7);
+  gl_FragColor = vec4(col, 1.);
+}`;
+
 const ATMO_VERT = /* glsl */ `
-varying vec3 vN;
-void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`;
+varying vec3 vN; varying vec3 vWN; varying vec3 vVP;
+void main(){
+  vN = normalize(normalMatrix * normal);
+  vWN = normalize(mat3(modelMatrix) * normal);
+  vec4 mv = modelViewMatrix * vec4(position, 1.);
+  vVP = mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}`;
 const ATMO_FRAG = /* glsl */ `
-varying vec3 vN; uniform vec3 uColor; uniform float uPow;
-void main(){ float i = pow(max(.72 - dot(vN, vec3(0.,0.,1.)), 0.), uPow); gl_FragColor = vec4(uColor * i * 1.6, i); }`;
+varying vec3 vN; varying vec3 vWN; varying vec3 vVP;
+uniform vec3 uColor, uSun; uniform float uPow, uK, uTwi;
+void main(){
+  float c = clamp(-dot(normalize(vN), normalize(-vVP)) / uK, 0., 1.);
+  float i = pow(c, uPow);
+  float sd = dot(normalize(vWN), normalize(uSun));
+  float day = smoothstep(-.4, .5, sd);
+  float tw = exp(-pow(sd * 3., 2.)) * uTwi;
+  vec3 col = mix(uColor, vec3(1., .5, .18), tw * .8);
+  float a = i * (.1 + day * .9 + tw * .5);
+  gl_FragColor = vec4(col * a * 1.7, a);
+}`;
 
 const RING_VERT = /* glsl */ `
 varying float vR; varying vec3 vWP;
-void main(){ vR = length(position.xy); vec4 wp = modelMatrix * vec4(position,1.); vWP = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }`;
+void main(){ vR = length(position.xy); vec4 wp = modelMatrix * vec4(position, 1.); vWP = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }`;
 const RING_FRAG = /* glsl */ `
-precision highp float; varying float vR; varying vec3 vWP; uniform vec3 uColor; uniform float uIn, uOut;
-${NOISE}
+precision highp float;
+varying float vR; varying vec3 vWP;
+uniform sampler2D uRing; uniform float uHas, uIn, uOut, uPR; uniform vec3 uCenter, uSun;
 void main(){
   float t = (vR - uIn) / (uOut - uIn);
-  float bands = .55 + .45 * sin(t * 70. + noise(vec3(t * 20., 0., 0.)) * 6.);
-  float gap = smoothstep(.0,.06,t) * (1. - smoothstep(.94,1.,t)) * (1. - .8 * smoothstep(.52,.54,t) * (1. - smoothstep(.56,.58,t)));
-  float a = bands * gap * .75;
-  gl_FragColor = vec4(uColor * (.6 + .6 * bands), a);
+  vec4 tex = uHas > .5 ? texture2D(uRing, vec2(t, .5)) : vec4(.8, .7, .55, .45 * smoothstep(0., .1, t));
+  vec3 s = normalize(uSun);
+  vec3 pc = uCenter - vWP;
+  float tp = dot(pc, s);
+  float dist = length(pc - s * tp);
+  float sh = tp > 0. ? mix(.08, 1., smoothstep(uPR * .94, uPR * 1.04, dist)) : 1.;
+  gl_FragColor = vec4(tex.rgb * sh * 1.1, tex.a * .95);
 }`;
 
 const STAR_VERT = /* glsl */ `
@@ -305,53 +365,140 @@ export default function GalaxyScene({ onFail }: { onFail?: () => void }) {
         const xs = [0, -4, 4, -4, 4, -3, 0];
         const ys = [0, 2, -2, 2, -2, 1, 0];
         const stations = xs.map((x, i) => new THREE.Vector3(x, ys[i], -STEP * i));
-        const planets: { mesh: THREE.Group; body: THREE.Mesh; mat: THREE.ShaderMaterial; spec: PlanetSpec }[] = [];
-        const sphereGeo = track(new THREE.IcosahedronGeometry(1, mobile ? 40 : 64));
+        type P = {
+            mesh: THREE.Group; mat: THREE.ShaderMaterial; spec: PlanetSpec; sun: THREE.Vector3;
+            moon?: THREE.Mesh; ring?: THREE.ShaderMaterial; flare?: { el: LensflareElement; base: THREE.Color }[];
+            ready: boolean;
+        };
+        const planets: P[] = [];
+        const sphereGeo = track(new THREE.SphereGeometry(1, mobile ? 64 : 96, mobile ? 48 : 64));
         const atmoGeo = track(new THREE.SphereGeometry(1, 48, 48));
-        const ringGeo = track(new THREE.RingGeometry(1.45, 2.5, 128, 1));
+        const ringGeo = track(new THREE.RingGeometry(1.4, 2.5, 160, 1));
+        const loader = new THREE.TextureLoader();
+        const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        const timers: number[] = [];
+        const loadTex = (name: string, done: (t: THREE.Texture) => void, ext = "webp") => {
+            const t = loader.load(`/tex/${name}.${ext}`, () => done(t));
+            t.wrapS = THREE.RepeatWrapping;
+            t.anisotropy = aniso;
+            track(t);
+            return t;
+        };
+        const mats = (spec: PlanetSpec): THREE.ShaderMaterial => {
+            const base = {
+                uHas: { value: 0 }, uRot: { value: 0 }, uTime: { value: 0 }, uMap: { value: null as THREE.Texture | null },
+                uFallback: { value: new THREE.Color(spec.fallback) }, uAtmo: { value: new THREE.Color(spec.atmo) },
+                uSun: { value: new THREE.Vector3(-0.6, 0.35, 0.7) },
+            };
+            const earth = spec.kind === "earth" ? { uDay: { value: null }, uNight: { value: null }, uSpec: { value: null }, uClouds: { value: null } } : {};
+            return track(new THREE.ShaderMaterial({
+                vertexShader: PLANET_VERT,
+                fragmentShader: spec.kind === "earth" ? EARTH_FRAG : spec.kind === "sun" ? SUN_FRAG : TEX_FRAG,
+                uniforms: { ...base, ...earth },
+            }));
+        };
 
         PLANETS.forEach((spec, i) => {
             const group = new THREE.Group();
-            const mat = track(new THREE.ShaderMaterial({
-                vertexShader: PLANET_VERT, fragmentShader: PLANET_FRAG,
-                uniforms: {
-                    uA: { value: new THREE.Color(spec.a) }, uB: { value: new THREE.Color(spec.b) }, uC: { value: new THREE.Color(spec.c) },
-                    uAtmo: { value: new THREE.Color(spec.atmo) }, uSun: { value: new THREE.Vector3(-0.6, 0.35, 0.7) },
-                    uKind: { value: spec.kind }, uSeed: { value: spec.seed }, uTime: { value: 0 },
-                },
-            }));
+            const mat = mats(spec);
             const body = new THREE.Mesh(sphereGeo, mat);
+            if (spec.tilt) body.rotation.z = spec.tilt * 0.3;
             group.add(body);
-            const am = track(new THREE.ShaderMaterial({
+            const sun = new THREE.Vector3(...(spec.sun ?? [-0.6, 0.35, 0.7])).normalize();
+            const entry: P = { mesh: group, mat, spec, sun, ready: false };
+
+            const atmoMat = track(new THREE.ShaderMaterial({
                 vertexShader: ATMO_VERT, fragmentShader: ATMO_FRAG,
-                uniforms: { uColor: { value: new THREE.Color(spec.atmo) }, uPow: { value: spec.kind === 2 ? 2.2 : 3.4 } },
+                uniforms: {
+                    uColor: { value: new THREE.Color(spec.atmo) }, uSun: { value: sun }, uPow: { value: spec.atmoPow },
+                    uK: { value: Math.sqrt(1 - 1 / (spec.atmoScale * spec.atmoScale)) }, uTwi: { value: spec.kind === "sun" ? 0 : 1 },
+                },
                 side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false,
             }));
-            const atmo = new THREE.Mesh(atmoGeo, am);
-            atmo.scale.setScalar(spec.kind === 2 ? 1.5 : 1.16);
+            const atmo = new THREE.Mesh(atmoGeo, atmoMat);
+            atmo.scale.setScalar(spec.atmoScale);
             group.add(atmo);
+
             if (spec.ring) {
                 const rm = track(new THREE.ShaderMaterial({
                     vertexShader: RING_VERT, fragmentShader: RING_FRAG,
-                    uniforms: { uColor: { value: new THREE.Color(spec.c) }, uIn: { value: 1.45 }, uOut: { value: 2.5 } },
+                    uniforms: {
+                        uRing: { value: null as THREE.Texture | null }, uHas: { value: 0 }, uIn: { value: 1.4 }, uOut: { value: 2.5 },
+                        uPR: { value: 1 }, uCenter: { value: new THREE.Vector3() }, uSun: { value: sun },
+                    },
                     side: THREE.DoubleSide, transparent: true, depthWrite: false,
                 }));
                 const ring = new THREE.Mesh(ringGeo, rm);
-                ring.rotation.x = Math.PI / 2 - 0.35;
-                ring.rotation.y = i % 2 ? 0.25 : -0.25;
+                ring.rotation.x = Math.PI / 2 - (spec.tilt ?? 0.4);
+                ring.rotation.y = -0.2;
                 group.add(ring);
+                entry.ring = rm;
             }
-            if (spec.kind === 2) {
-                const glow = new THREE.Sprite(track(new THREE.SpriteMaterial({
-                    map: track(glowTexture([[0, "rgba(255,220,160,.8)"], [0.3, "rgba(255,140,60,.3)"], [1, "rgba(255,100,30,0)"]])),
-                    blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
-                })));
-                glow.scale.set(7, 7, 1);
-                group.add(glow);
+
+            if (spec.moon) {
+                const mm = mats({ ...spec, kind: "tex", fallback: "#8d8d8d", atmo: "#9aa0b0" });
+                (mm.uniforms.uSun.value as THREE.Vector3).copy(sun);
+                const moon = new THREE.Mesh(sphereGeo, mm);
+                moon.scale.setScalar(0.27);
+                group.add(moon);
+                entry.moon = moon;
+                (moon.userData as { mat: THREE.ShaderMaterial }).mat = mm;
+            }
+
+            if (spec.kind === "sun") {
+                const f0 = loader.load("/tex/lensflare0.png");
+                const f3 = loader.load("/tex/lensflare3.png");
+                track(f0); track(f3);
+                const lf = new Lensflare();
+                const defs: [THREE.Texture, number, number, THREE.Color][] = [
+                    [f0, 640, 0, new THREE.Color(1, 0.72, 0.45)],
+                    [f3, 60, 0.6, new THREE.Color(1, 0.8, 0.6)],
+                    [f3, 110, 0.72, new THREE.Color(0.6, 0.8, 1)],
+                    [f3, 70, 0.9, new THREE.Color(1, 0.6, 0.8)],
+                    [f3, 150, 1.0, new THREE.Color(1, 0.85, 0.6)],
+                ];
+                entry.flare = defs.map(([t, sz, dist, c]) => {
+                    const el = new LensflareElement(t, sz, dist, c.clone());
+                    lf.addElement(el);
+                    return { el, base: c };
+                });
+                group.add(lf);
             }
             scene.add(group);
-            planets.push({ mesh: group, body, mat, spec });
+            planets.push(entry);
         });
+
+        const uni1 = (m: THREE.ShaderMaterial, k: string, v: unknown) => { (m.uniforms[k] as { value: unknown }).value = v; };
+        const loadPlanet = (i: number) => {
+            const p = planets[i];
+            const { spec, mat } = p;
+            if (spec.kind === "earth") {
+                let n = 0;
+                const ok = () => { if (++n === 4) { uni1(mat, "uHas", 1); p.ready = true; } };
+                (["earth_day:uDay", "earth_night:uNight", "earth_spec:uSpec", "earth_clouds:uClouds"]).forEach((x) => {
+                    const [f, u] = x.split(":");
+                    loadTex(f, (t) => { uni1(mat, u, t); ok(); });
+                });
+                const mm = (p.moon!.userData as { mat: THREE.ShaderMaterial }).mat;
+                loadTex("moon", (t) => { uni1(mm, "uMap", t); uni1(mm, "uHas", 1); });
+            } else {
+                loadTex(spec.tex!, (t) => { uni1(mat, "uMap", t); uni1(mat, "uHas", 1); p.ready = true; });
+            }
+            if (p.ring) loadTex("saturn_ring", (t) => { uni1(p.ring!, "uRing", t); uni1(p.ring!, "uHas", 1); });
+        };
+        loadPlanet(0);
+        for (let i = 1; i < planets.length; i++) timers.push(window.setTimeout(() => loadPlanet(i), 900 + i * 700));
+
+        // ---------- Bloom (HDR, half-res) on capable devices ----------
+        renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+        let composer: EffectComposer | null = null;
+        let bloom: UnrealBloomPass | null = null;
+        if (!mobile && !lowEnd && !reduce) {
+            composer = new EffectComposer(renderer);
+            composer.addPass(new RenderPass(scene, camera));
+            bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.8, 0.6, 0.95);
+            composer.addPass(bloom);
+        }
 
         // ---------- Layout / resize ----------
         let W = 1, H = 1, aspect = 1;
@@ -370,10 +517,13 @@ export default function GalaxyScene({ onFail }: { onFail?: () => void }) {
                 const x = aspect < 0.9 ? side * hw * 0.55 : side * Math.min(hw * 0.64, 30);
                 const y = aspect < 0.9 ? (side > 0 ? 7 : -7) : -1.5 + (i % 3) * 1.2;
                 p.mesh.position.set(s.x + x, s.y + y, s.z - d);
-                p.mesh.userData.base = p.spec.kind === 2 ? radius * 1.15 : radius;
+                p.mesh.userData.base = radius * p.spec.size;
                 p.mesh.scale.setScalar(p.mesh.userData.base);
-                (p.mat.uniforms.uSun.value as THREE.Vector3).set(-side * 0.7, 0.32, 0.65).normalize();
+                if (!p.spec.sun) p.sun.set(-side * 0.7, 0.32, 0.65).normalize();
+                uni1(p.mat, "uSun", p.sun);
+                if (p.moon) uni1((p.moon.userData as { mat: THREE.ShaderMaterial }).mat, "uSun", p.sun);
             });
+            composer?.setSize(W, H);
             const px = renderer.domElement.height;
             const scale = px / (2 * hh);
             uni.uScale.value = scale; gu.uScale.value = scale;
@@ -438,7 +588,7 @@ export default function GalaxyScene({ onFail }: { onFail?: () => void }) {
 
             // adaptive resolution
             ema += (dt * 1000 - ema) * 0.05;
-            if (ema > 26 && dpr > 0.75) { if (++slow > 80) { dpr = Math.max(0.75, dpr - 0.25); renderer.setPixelRatio(dpr); layout(); slow = 0; ema = 16; } }
+            if (ema > 26 && dpr > 0.75) { if (++slow > 80) { dpr = Math.max(0.75, dpr - 0.25); renderer.setPixelRatio(dpr); composer?.setPixelRatio(dpr); layout(); slow = 0; ema = 16; } }
             else slow = 0;
 
             const target = stationFloat();
@@ -456,14 +606,31 @@ export default function GalaxyScene({ onFail }: { onFail?: () => void }) {
             camera.updateProjectionMatrix();
 
             galaxy.rotation.y += dt * 0.012;
-            planets.forEach((p, i) => {
-                const k = 1 - smooth(75, 150, camera.position.distanceTo(p.mesh.position));
+            planets.forEach((p) => {
+                const dist = camera.position.distanceTo(p.mesh.position);
+                const k = 1 - smooth(55, 105, dist);
                 p.mesh.visible = k > 0.01;
-                if (p.mesh.visible) p.mesh.scale.setScalar((p.mesh.userData.base as number) * (0.25 + 0.75 * k));
-                p.body.rotation.y += dt * (0.05 + i * 0.006);
-                (p.mat.uniforms.uTime as { value: number }).value = t;
+                if (!p.mesh.visible) return;
+                p.mesh.scale.setScalar((p.mesh.userData.base as number) * (0.25 + 0.75 * k));
+                uni1(p.mat, "uRot", t * p.spec.spin);
+                uni1(p.mat, "uTime", t);
+                if (p.ring) {
+                    uni1(p.ring, "uCenter", p.mesh.position);
+                    uni1(p.ring, "uPR", p.mesh.scale.x);
+                }
+                if (p.moon) {
+                    const a = t * 0.18 + 1.2;
+                    p.moon.position.set(Math.cos(a) * 2.7, Math.sin(a * 0.7) * 0.4, Math.sin(a) * 2.7);
+                    const mm = (p.moon.userData as { mat: THREE.ShaderMaterial }).mat;
+                    uni1(mm, "uRot", t * 0.01);
+                }
+                if (p.flare) {
+                    const f = 1 - smooth(40, 125, dist);
+                    p.flare.forEach(({ el, base }) => el.color.copy(base).multiplyScalar(f));
+                }
             });
-            renderer.render(scene, camera);
+            if (bloom) bloom.strength = 0.55 + aw * 0.3;
+            if (composer) composer.render(); else renderer.render(scene, camera);
         };
 
         if (reduce) {
@@ -489,8 +656,10 @@ export default function GalaxyScene({ onFail }: { onFail?: () => void }) {
 
         return () => {
             cancelAnimationFrame(raf);
+            timers.forEach((id) => clearTimeout(id));
             window.removeEventListener("resize", onResize);
             ro.disconnect();
+            composer?.dispose();
             disposables.forEach((d) => d.dispose());
             renderer.dispose();
             renderer.forceContextLoss();

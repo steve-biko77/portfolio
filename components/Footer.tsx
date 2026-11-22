@@ -75,6 +75,9 @@ const Footer = () => {
                     <p className="font-mono text-[11px] uppercase tracking-[.1em] text-white-200/60">
                         © 2026 Steve Biko Wafo Kamga
                     </p>
+                    <p className="w-full font-mono text-[9px] uppercase tracking-[.1em] text-white-200/35 sm:order-last">
+                        Textures planétaires : NASA, Solar System Scope, planetpixelemporium.com, three.js
+                    </p>
 
                     <div className="flex items-center gap-5">
                         <p className="font-mono text-[11px] uppercase tracking-[.1em] text-white-200/60">
