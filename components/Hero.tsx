@@ -10,7 +10,6 @@ const NAME = ["STEVE", "BIKO"];
 const Hero = () => {
     const wrap = useRef<HTMLDivElement>(null);
     const content = useRef<HTMLDivElement>(null);
-    const planet = useRef<HTMLDivElement>(null);
     const [role, setRole] = useState(0);
 
     useEffect(() => {
@@ -20,7 +19,6 @@ const Hero = () => {
 
     useEffect(() => {
         let raf = 0;
-        let px = 0, py = 0;
         const apply = () => {
             raf = 0;
             const p = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.9)));
@@ -28,51 +26,18 @@ const Hero = () => {
                 content.current.style.transform = `translateY(${p * 90}px) scale(${1 - p * 0.08})`;
                 content.current.style.opacity = String(Math.max(0, 1 - p * 1.5));
             }
-            if (planet.current) {
-                planet.current.style.transform = `translate3d(${px * 18}px, ${py * 12 - p * 120}px, 0) scale(${1 + p * 1.8})`;
-                planet.current.style.opacity = String(Math.max(0, 1 - p * 1.1));
-            }
         };
         const queue = () => { if (!raf) raf = requestAnimationFrame(apply); };
-        const onMove = (e: PointerEvent) => {
-            px = e.clientX / window.innerWidth - 0.5;
-            py = e.clientY / window.innerHeight - 0.5;
-            queue();
-        };
         apply();
         window.addEventListener("scroll", queue, { passive: true });
-        window.addEventListener("pointermove", onMove);
         return () => {
             window.removeEventListener("scroll", queue);
-            window.removeEventListener("pointermove", onMove);
             if (raf) cancelAnimationFrame(raf);
         };
     }, []);
 
     return (
         <div ref={wrap} id="top" className="game-anim relative flex min-h-screen flex-col items-center justify-center overflow-hidden pb-16 pt-28">
-            {/* Planet */}
-            <div ref={planet} aria-hidden className="pointer-events-none absolute left-1/2 top-[52%] -z-0 will-change-transform" style={{ marginLeft: "-260px", marginTop: "-260px" }}>
-                <div className="relative h-[520px] w-[520px]" style={{ animation: "planet-float 9s ease-in-out infinite" }}>
-                    <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                            background:
-                                "radial-gradient(circle at 32% 28%, rgba(203,172,249,.55), rgba(88,60,170,.38) 38%, rgba(10,12,40,.9) 70%)",
-                            boxShadow: "0 0 140px -10px rgba(203,172,249,.35), inset -40px -50px 120px rgba(0,3,25,.95)",
-                        }}
-                    />
-                    <div
-                        className="absolute left-1/2 top-1/2 h-[170px] w-[880px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-purple/40"
-                        style={{ transform: "translate(-50%,-50%) rotate(-14deg)", boxShadow: "0 0 40px rgba(203,172,249,.25)" }}
-                    />
-                    <div
-                        className="absolute left-1/2 top-1/2 h-[210px] w-[1000px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/10"
-                        style={{ transform: "translate(-50%,-50%) rotate(-14deg)" }}
-                    />
-                </div>
-            </div>
-
             <div ref={content} className="relative z-10 flex w-full flex-col items-center px-4 text-center will-change-transform">
                 <p
                     className="font-mono text-[11px] uppercase tracking-[.3em] text-purple"

@@ -7,7 +7,7 @@ import Client from "@/components/Client";
 import Experience from "@/components/Experience";
 import Approach from "@/components/Approach";
 import Footer from "@/components/Footer";
-import StarField from "@/components/ui/star-field";
+import GalaxyLoader from "@/components/ui/galaxy-loader";
 import GameHud from "@/components/ui/game-hud";
 import {LevelTitle, Reveal} from "@/components/ui/level-title";
 
@@ -26,7 +26,7 @@ const levels = [
 export default function Home() {
   return (
     <>
-      <StarField/>
+      <GalaxyLoader/>
       <GameHud levels={levels}/>
       <main className="relative z-10 flex justify-center items-center flex-col overflow-hidden mx-auto sm:px-10 px-5">
         <div className="max-w-7xl w-full text-center">
