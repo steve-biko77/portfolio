@@ -1,8 +1,9 @@
 import React from 'react';
-import { projects } from "@/data";
+import { getProjects } from "@/lib/projects";
 import ProjectShelf from "@/components/ui/project-shelf";
 
-const RecentProjects = () => {
+const RecentProjects = async () => {
+    const projects = await getProjects();
     return (
         <section className="py-20" id="projects">
             <h1 className="heading scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl">

@@ -13,6 +13,7 @@
     "@react-three/fiber": "^9.0.0-alpha.8",
     "@sentry/nextjs": "^10.25.0",
     "@tabler/icons-react": "^3.35.0",
+    "@vercel/blob": "^2.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.553.0",

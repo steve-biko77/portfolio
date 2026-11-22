@@ -186,3 +186,13 @@
         @apply bg-background text-foreground;
     }
 }
+/* --- Voyage galactique : hero + niveaux --- */
+@keyframes letter-rise { from { transform: translateY(110%) rotate(5deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes role-swap   { 0% { transform: translateY(100%); opacity: 0; } 12%,88% { transform: none; opacity: 1; } 100% { transform: translateY(-100%); opacity: 0; } }
+@keyframes cue-drop    { 0% { transform: translateY(-100%); } 60%,100% { transform: translateY(100%); } }
+@keyframes planet-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -14px; } }
+@keyframes fade-up     { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .game-anim, .game-anim * { animation: none !important; transition: none !important; }
+}

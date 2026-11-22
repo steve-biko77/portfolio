@@ -12,6 +12,7 @@ export type ShelfProject = {
     kind: string;
     stack: string[];
     img: string;
+    photos?: string[];
     iconLists: string[];
     link: string;
     hue: number;
@@ -19,6 +20,7 @@ export type ShelfProject = {
 
 const EASE = "cubic-bezier(.2,.8,.2,1)";
 const SHEET_EASE = "cubic-bezier(.76,0,.18,1)";
+const isVector = (src: string) => /\.svg(\?|$)/i.test(src);
 const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
 /** Neighbours step aside by half the open cover's extra width, continuously. */
@@ -497,7 +499,12 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                                             <img
                                                 src={p.img}
                                                 alt=""
-                                                className="absolute inset-x-0 bottom-0 w-full object-contain opacity-95"
+                                                loading="lazy"
+                                                className={
+                                                    isVector(p.img)
+                                                        ? "absolute inset-x-0 bottom-0 w-full object-contain opacity-95"
+                                                        : "absolute inset-0 h-full w-full object-cover"
+                                                }
                                             />
                                         )}
                                     </div>
@@ -672,6 +679,22 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                                 ))}
                             </div>
                         </div>
+                        {current.photos && current.photos.length > 0 && (
+                            <div className="overflow-hidden">
+                                <div data-rise className="flex gap-2 overflow-x-auto pb-1">
+                                    {current.photos.map((src) => (
+                                        <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                                            <img
+                                                src={src}
+                                                alt=""
+                                                loading="lazy"
+                                                className="h-20 w-32 rounded border border-white/15 object-cover transition-opacity hover:opacity-80"
+                                            />
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         {current.link && (
                             <div className="overflow-hidden">
                                 <a
@@ -698,7 +721,15 @@ export const ProjectShelf = ({ items }: { items: ShelfProject[] }) => {
                         >
                             <canvas ref={detailCanvas} className="absolute inset-0 h-full w-full" />
                             {current.img && (
-                                <img src={current.img} alt="" className="absolute inset-x-0 bottom-0 w-full object-contain" />
+                                <img
+                                    src={current.img}
+                                    alt=""
+                                    className={
+                                        isVector(current.img)
+                                            ? "absolute inset-x-0 bottom-0 w-full object-contain"
+                                            : "absolute inset-0 h-full w-full object-cover"
+                                    }
+                                />
                             )}
                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black-100 to-transparent p-6 pt-16">
                                 <p className="text-sm text-white-100">{current.des}</p>
